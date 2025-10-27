@@ -1,25 +1,61 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <meta charset="utf-8">
+  <meta charset="utf-8" />
   <title>SmartTag Copilot</title>
-  <script src="taskpane.js"></script>
+  <script src="https://appsforoffice.microsoft.com/lib/1/hosted/office.js"></script>
   <style>
-    body { font-family: Segoe UI, sans-serif; margin: 10px; }
-    #searchBox {
-      width: 100%; padding: 8px; font-size: 16px;
-      border: 1px solid #ccc; border-radius: 4px;
+    body {
+      font-family: "Segoe UI", Arial;
+      margin: 0;
+      padding: 20px;
+      background: #fafafa;
     }
-    #results div {
-      padding: 6px; border-bottom: 1px solid #eee; cursor: pointer;
+    h2 {
+      margin-top: 0;
     }
-    #results div:hover { background: #f3f3f3; }
-    h3 { margin: 8px 0 4px 0; }
+    .search-box {
+      display: flex;
+      flex-direction: column;
+    }
+    input {
+      width: 100%;
+      padding: 10px;
+      font-size: 14px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+    }
+    .suggestions {
+      border: 1px solid #ddd;
+      background: #fff;
+      margin-top: 5px;
+      max-height: 200px;
+      overflow-y: auto;
+      border-radius: 5px;
+      box-shadow: 0 1px 5px rgba(0,0,0,0.1);
+    }
+    .suggestion-item {
+      padding: 8px;
+      cursor: pointer;
+    }
+    .suggestion-item:hover {
+      background: #f3f3f3;
+    }
+    .loading {
+      color: #888;
+      font-size: 13px;
+      margin-top: 5px;
+    }
   </style>
 </head>
 <body>
   <h2>🔍 SmartTag Copilot</h2>
-  <input id="searchBox" placeholder="Nhập @tag để tìm..." />
-  <div id="results"></div>
+  <div class="search-box">
+    <input id="tagSearch" type="text" placeholder="Nhập @tag để tìm..." />
+    <div id="suggestions" class="suggestions"></div>
+    <div id="loading" class="loading"></div>
+  </div>
+
+  <script src="taskpane.js"></script>
 </body>
 </html>
