@@ -1,21 +1,87 @@
-<?xml version="1.0" encoding="UTF-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <OfficeApp xmlns="http://schemas.microsoft.com/office/appforoffice/1.1"
            xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+           xmlns:bt="http://schemas.microsoft.com/office/officeappbasictypes/1.0"
            xsi:type="TaskPaneApp">
 
-  <Id>f3c6b8f5-27aa-4e20-b7a8-smarttag001</Id>
+  <!-- CHANGE THIS to a valid GUID (36 chars with dashes) -->
+  <Id>61d62e1c-a300-4a3a-9d75-f66b083f102c</Id>
+
   <Version>1.0.0.0</Version>
-  <ProviderName>Duncan Nguyen</ProviderName>
+  <ProviderName>Duncan</ProviderName>
   <DefaultLocale>en-US</DefaultLocale>
+
   <DisplayName DefaultValue="SmartTag Copilot"/>
-  <Description DefaultValue="Add-in gợi ý và chèn tag tự động từ SharePoint"/>
+  <Description DefaultValue="SmartTag Copilot — insert tags from SharePoint list"/>
+
+  <IconUrl DefaultValue="https://via.placeholder.com/32" />
+  <SupportUrl DefaultValue="https://github.com/Duncan882022/SmartTag" />
+
   <Hosts>
     <Host Name="Document"/>
   </Hosts>
 
+  <!-- This is the taskpane page that Office will load -->
   <DefaultSettings>
     <SourceLocation DefaultValue="https://duncan882022.github.io/SmartTag/taskpane.html"/>
   </DefaultSettings>
 
   <Permissions>ReadWriteDocument</Permissions>
+
+  <!-- Modern section: VersionOverrides (keeps manifest compatible with new Office clients) -->
+  <VersionOverrides xmlns="http://schemas.microsoft.com/office/taskpaneappversionoverrides" Version="1.0">
+    <Hosts>
+      <Host xsi:type="Document">
+        <DesktopFormFactor>
+          <GetStarted>
+            <Title>SmartTag Copilot</Title>
+            <Description>Insert tags from SharePoint</Description>
+          </GetStarted>
+
+          <ExtensionPoint xsi:type="PrimaryCommandSurface">
+            <OfficeTab id="TabHome">
+              <Group id="SmartTag.Group" label="SmartTag">
+                <Control xsi:type="Button" id="SmartTag.Button">
+                  <Label resid="SmartTag.Label" />
+                  <Supertip>
+                    <Title resid="SmartTag.Label" />
+                    <Description resid="SmartTag.Description" />
+                  </Supertip>
+                  <Icon>
+                    <bt:Image size="16" resid="icon16" />
+                    <bt:Image size="32" resid="icon32" />
+                  </Icon>
+                  <Action xsi:type="ShowTaskpane">
+                    <TaskpaneId>ButtonId1</TaskpaneId>
+                    <SourceLocation resid="Taskpane.Url" />
+                  </Action>
+                </Control>
+              </Group>
+            </OfficeTab>
+          </ExtensionPoint>
+
+        </DesktopFormFactor>
+      </Host>
+    </Hosts>
+
+    <Resources>
+      <bt:Images>
+        <bt:Image id="icon16" DefaultValue="https://via.placeholder.com/16" />
+        <bt:Image id="icon32" DefaultValue="https://via.placeholder.com/32" />
+      </bt:Images>
+
+      <bt:Urls>
+        <!-- These resid values are referenced above -->
+        <bt:Url id="Taskpane.Url" DefaultValue="https://duncan882022.github.io/SmartTag/taskpane.html" />
+      </bt:Urls>
+
+      <bt:ShortStrings>
+        <bt:String id="SmartTag.Label" DefaultValue="SmartTag Copilot" />
+      </bt:ShortStrings>
+
+      <bt:LongStrings>
+        <bt:String id="SmartTag.Description" DefaultValue="Open SmartTag Copilot panel" />
+      </bt:LongStrings>
+    </Resources>
+  </VersionOverrides>
 </OfficeApp>
