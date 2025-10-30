@@ -1,41 +1,44 @@
-const siteUrl = "https://justengineertech.sharepoint.com/sites/E-Office";
-const listName = "TagLibrary";
+body {
+  font-family: 'Segoe UI', sans-serif;
+  margin: 0;
+  padding: 0;
+  background: #fafafa;
+}
 
-document.getElementById("searchBox").addEventListener("input", async (e) => {
-  const keyword = e.target.value.trim().toLowerCase();
-  const resultsList = document.getElementById("tagResults");
-  resultsList.innerHTML = "";
-  if (!keyword) return;
+.container {
+  padding: 15px;
+}
 
-  try {
-    const response = await fetch(`${siteUrl}/_api/web/lists/getbytitle('${listName}')/items?$select=Title,Value,Desc`, {
-      headers: { "Accept": "application/json;odata=verbose" }
-    });
-    const data = await response.json();
-    const items = data.d?.results || [];
+h2 {
+  color: #0066cc;
+  font-size: 18px;
+  margin-bottom: 10px;
+}
 
-    // Lọc tương đối
-    const filtered = items.filter(i => i.Title.toLowerCase().includes(keyword));
+#searchBox {
+  width: 100%;
+  padding: 8px 10px;
+  font-size: 14px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  box-sizing: border-box;
+  margin-bottom: 10px;
+}
 
-    if (filtered.length === 0) {
-      // Nếu không có kết quả tương đối → kiểm tra trùng tuyệt đối
-      const exact = items.find(i => i.Title.toLowerCase() === keyword);
-      resultsList.innerHTML = exact
-        ? `<li title="${exact.Value}\n${exact.Desc}">${exact.Title}</li>`
-        : "<li>Không tìm thấy tag</li>";
-      return;
-    }
+#results {
+  border: 1px solid #e0e0e0;
+  background: #fff;
+  border-radius: 4px;
+  max-height: 300px;
+  overflow-y: auto;
+}
 
-    // Hiển thị kết quả tương đối
-    filtered.forEach(i => {
-      const li = document.createElement("li");
-      li.textContent = i.Title;
-      li.title = `${i.Value}\n${i.Desc}`;
-      resultsList.appendChild(li);
-    });
+.tag-item {
+  padding: 8px 10px;
+  border-bottom: 1px solid #eee;
+  cursor: pointer;
+}
 
-    console.log("Kết quả tìm kiếm:", filtered);
-  } catch (error) {
-    console.error("Lỗi khi tải tag:", error);
-  }
-});
+.tag-item:hover {
+  background-color: #f0f8ff;
+}
