@@ -1,106 +1,84 @@
-// Detect environment (Office vs normal website)
-const isOffice = typeof Office !== "undefined" && Office.onReady;
-
-if (isOffice) {
-  // Running inside Word Add-in
-  Office.onReady(() => {
-    initUI();
-  });
-} else {
-  // Running on normal browser (GitHub testing)
-  document.addEventListener("DOMContentLoaded", () => {
-    console.log("✅ Running in browser mode (GitHub test)");
-    initUI();
-  });
+function logMessage(text) {
+  const box = document.getElementById("chat-output");
+  if (!box) return;
+  const div = document.createElement("div");
+  div.style.padding = "6px";
+  div.style.fontSize = "13px";
+  div.style.borderLeft = "4px solid #0078d4";
+  div.style.background = "#f1f5ff";
+  div.style.marginBottom = "6px";
+  div.textContent = text;
+  box.appendChild(div);
+  box.scrollTop = box.scrollHeight;
 }
 
-// UI init
-function initUI() {
+// Detect SP / Browser
+const isSharePoint = typeof _spPageContextInfo !== "undefined";
+
+// Init UI
+document.addEventListener("DOMContentLoaded", () => {
+  logMessage("✅ SmartCopilot ready");
+  logMessage(`Mode: ${isSharePoint ? "SharePoint" : "Browser/GitHub"}`);
+
   const input = document.getElementById("searchBox");
   const send = document.getElementById("sendBtn");
+  send.onclick = search;
+  input.addEventListener("keypress", e => { if (e.key === "Enter") search(); });
+});
 
-  if (!input || !send) {
-    console.error("❌ UI not found – check HTML");
-    return;
-  }
-
-  send.onclick = () => runSearch();
-  input.addEventListener("keypress", e => { if (e.key === "Enter") runSearch(); });
-
-  addMessage("✅ Smart Copilot sẵn sàng.\n• Word mode detected: " + isOffice + "\n• Gõ @ hoặc từ khóa để tra cứu TagLibrary", "system");
-}
-
-// User run search
-async function runSearch() {
+async function search() {
   const input = document.getElementById("searchBox");
   const keyword = input.value.trim();
+
   if (!keyword) return;
+  logMessage(`🔍 Search: ${keyword}`);
 
-  addMessage(`🔎 Tìm kiếm: ${keyword}`, "system");
-  await fetchTags(keyword);
-  input.value = "";
-}
-
-// Fetch SharePoint list TagLibrary
-async function fetchTags(keyword) {
-  try {
-    // Browser test mode → dummy values
-    if (!isOffice && typeof _spPageContextInfo === "undefined") {
-      addMessage("🌐 GitHub mode – demo data", "system");
-
-      const demo = [
-        { Title: "Số văn bản", Value: "{SoVB}", Desc: "Tự động điền số văn bản" },
-        { Title: "Ngày ban hành", Value: "{NgayBanHanh}", Desc: "Ngày ký văn bản" }
-      ];
-
-      return showResults(keyword, demo);
-    }
-
-    // Real mode inside SharePoint
-    const siteUrl = _spPageContextInfo.webAbsoluteUrl;
-    const endpoint = `${siteUrl}/_api/web/lists/getbytitle('TagLibrary')/items?$select=Title,Value,Desc`;
-
-    const response = await fetch(endpoint, {
-      headers: { Accept: "application/json;odata=verbose" },
-      credentials: "same-origin"
-    });
-
-    if (!response.ok) throw new Error(`HTTP ${response.status}`);
-
-    const data = await response.json();
-    const results = data.d?.results || [];
-
-    showResults(keyword, results);
-
-  } catch (err) {
-    addMessage(`❌ Lỗi: ${err.message}`, "system");
-  }
-}
-
-function showResults(keyword, results) {
-  const filtered = results.filter(item =>
-    !keyword ||
-    item.Title.toLowerCase().includes(keyword.toLowerCase()) ||
-    item.Value.toLowerCase().includes(keyword.toLowerCase()) ||
-    (item.Desc || "").toLowerCase().includes(keyword.toLowerCase())
-  );
-
-  if (filtered.length === 0) {
-    addMessage("⚠️ Không tìm thấy kết quả phù hợp.", "system");
+  if (!isSharePoint) {
+    // Demo mode for GitHub
+    logMessage("🧪 Demo mode");
+    const demo = [
+      {Title:"Số văn bản", Value:"{SoVB}", Desc:"Tự động số"},
+      {Title:"Ngày ban hành", Value:"{NgayBH}", Desc:"Ngày ký"}
+    ];
+    showResults(demo, keyword);
     return;
   }
 
-  filtered.forEach(tag => {
-    addMessage(`📘 <b>${tag.Title}</b><br>${tag.Desc}<br><small>🔖 ${tag.Value}</small>`, "result");
-  });
+  try {
+    const site = _spPageContextInfo.webAbsoluteUrl;
+    const url = `${site}/_api/web/lists/getbytitle('TagLibrary')/items?$select=Title,Value,Desc`;
+
+    logMessage("🌐 Call API");
+
+    const r = await fetch(url, {
+      headers: { Accept:"application/json;odata=verbose" },
+      credentials:"same-origin"
+    });
+
+    if (!r.ok) throw new Error(`HTTP ${r.status}`);
+
+    const json = await r.json();
+    const rows = json.d.results;
+    showResults(rows, keyword);
+
+  } catch (e) {
+    logMessage("❌ Lỗi: " + e.message);
+  }
 }
 
-// Message UI helper
-function addMessage(text, type = "system") {
-  const container = document.getElementById("chat-output");
-  const el = document.createElement("div");
-  el.className = `message ${type}`;
-  el.innerHTML = text.replace(/\n/g, "<br>");
-  container.appendChild(el);
-  container.scrollTop = container.scrollHeight;
+function showResults(items, keyword) {
+  const match = items.filter(t =>
+    t.Title.toLowerCase().includes(keyword.toLowerCase()) ||
+    t.Value.toLowerCase().includes(keyword.toLowerCase()) ||
+    (t.Desc || "").toLowerCase().includes(keyword.toLowerCase())
+  );
+
+  if (match.length === 0) {
+    logMessage("⚠️ Không tìm thấy");
+    return;
+  }
+
+  match.forEach(t => {
+    logMessage(`📘 ${t.Title} → ${t.Value}`);
+  });
 }
