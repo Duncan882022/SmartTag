@@ -1,142 +1,60 @@
 <!DOCTYPE html>
 <html lang="vi">
 <head>
-<meta charset="UTF-8" />
-<title>Smart Copilot</title>
-<meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>SmartCopilot</title>
+<link rel="icon" href="icon32.png"/>
+<link rel="stylesheet" href="smartcopilot.css"/>
 <script src="https://appsforoffice.microsoft.com/lib/1/hosted/office.js"></script>
-<style>
-body{margin:0;background:#f5f6fa;font-family:Segoe UI,Arial,sans-serif;}
-#wrap{max-width:600px;margin:auto;padding:16px;height:100vh;display:flex;flex-direction:column;gap:12px;}
-.panel{flex:1;background:#fff;border-radius:12px;padding:14px;box-shadow:0 6px 20px rgba(0,0,0,.08);overflow:auto;}
-.msg{padding:12px;background:#eef6ff;border-left:4px solid #0078d4;border-radius:8px;margin-bottom:10px;font-size:14px;}
-.msg.error{background:#ffe8e8;border-color:#d92d20;color:#7a271a;}
-.card{background:#e9f3ff;border:1px solid #bcd9ff;border-radius:10px;padding:10px;margin:8px 0;cursor:pointer;}
-.card:hover{outline:2px solid #0078d4;}
-.ttl{font-weight:600;margin-bottom:3px;}
-.desc{font-size:12px;color:#475569;margin-bottom:4px;}
-.val{font-family:Consolas,monospace;font-size:12px;background:#fff;border:1px dashed #bcd6f3;padding:3px 5px;border-radius:6px;display:inline-block}
-.inputBar{display:flex;gap:8px;}
-#kw{flex:1;padding:10px;border:1px solid #d0d7e2;border-radius:8px;font-size:14px;}
-#go{padding:10px 16px;background:#0078d4;color:#fff;border:0;border-radius:8px;font-weight:600;cursor:pointer;}
-</style>
 </head>
+
 <body>
-<div id="wrap">
-  <div class="panel">
-    <div id="msg" class="msg">✅ Sẵn sàng — nhập từ khóa rồi nhấn Tìm.</div>
-    <div id="results"></div>
+  <div class="wrap">
+    <header class="head">
+      <div class="head-info">
+        <span class="head-pill">SharePoint</span>
+        <div class="head-title">Thẻ thông minh cho Word</div>
+      </div>
+      <button id="refresh" type="button" class="chip" aria-label="Làm mới dữ liệu">
+        <span class="chip-led"></span>
+        Làm mới
+      </button>
+      <div id="bar" class="bar" role="status" aria-live="polite"></div>
+    </header>
+
+    <main id="panel" class="panel" aria-live="polite">
+      <div id="log" class="msg">
+        ✅ Sẵn sàng — gõ <b>@</b> để gợi ý tag và Enter để chèn.
+      </div>
+      <div id="cards" class="cards">
+        <div class="empty">
+          <div class="empty-icon" aria-hidden="true">
+            <svg width="44" height="44" viewBox="0 0 44 44" fill="none" role="presentation">
+              <circle cx="22" cy="22" r="21" stroke="currentColor" stroke-dasharray="4 4" opacity=".35"></circle>
+              <path d="M22 14v16M14 22h16" stroke="currentColor" stroke-width="2" stroke-linecap="round" opacity=".6"></path>
+            </svg>
+          </div>
+          <div class="empty-text">
+            Gõ <b>@</b> để mở danh sách gợi ý và di chuyển bằng phím mũi tên.
+          </div>
+        </div>
+      </div>
+    </main>
+
+    <footer class="dock">
+      <div class="inputWrap">
+        <label class="inputLabel" for="ipt">Prompt</label>
+        <div class="inputControl">
+          <input id="ipt" type="text" autocomplete="off" placeholder="Gõ @ để gợi ý, chọn và Enter để chèn"/>
+          <div id="typing" class="typing hidden" aria-hidden="true"><span></span><span></span><span></span></div>
+        </div>
+        <div class="inputHint">Nhấn Enter để chèn thẻ đang chọn • Esc để đóng gợi ý</div>
+        <div id="suggest" class="suggest hidden" role="listbox"></div>
+      </div>
+    </footer>
   </div>
 
-  <div class="inputBar">
-    <input id="kw" placeholder="Nhập từ khóa..." />
-    <button id="go">Tìm</button>
-  </div>
-</div>
-
-<script>
-// Detect environment
-const isSP = typeof _spPageContextInfo !== "undefined";
-const isWord = typeof Office !== "undefined" && Office.onReady;
-
-// UI helpers
-const msg = (t, err=false)=>{ 
-  const m=document.getElementById("msg");
-  m.className="msg"+(err?" error":"");
-  m.textContent=t;
-};
-const clearRes=()=>document.getElementById("results").innerHTML="";
-
-// Insert tag (only Word)
-async function insert(value){
-  if(!isWord) return false;
-  try{
-    await Office.onReady();
-    await Word.run(async ctx=>{
-      ctx.document.getSelection().insertText(value, Word.InsertLocation.replace);
-      await ctx.sync();
-    });
-    msg("✍️ Đã chèn "+value);
-    return true;
-  }catch(e){
-    msg("❌ Không chèn được vào Word","error"); 
-    return false;
-  }
-}
-
-// Click result
-async function pick(v){
-  const done=await insert(v);
-  if(!done){
-    navigator.clipboard.writeText(v).catch(()=>{});
-    msg("📋 Đã copy: "+v);
-  }
-}
-
-// Search
-async function search(){
-  const q = document.getElementById("kw").value.trim();
-  if(!q){ msg("ℹ️ Nhập từ khóa trước."); clearRes(); return; }
-
-  msg("🔎 Đang tìm…");
-  clearRes();
-
-  try{
-    let items=[];
-
-    if(isSP){
-      const site=_spPageContextInfo.webAbsoluteUrl;
-      const url=`${site}/_api/web/lists/getbytitle('TagLibrary')/items?$select=Title,Value,Desc`;
-
-      const r = await fetch(url,{
-        headers:{Accept:"application/json;odata=verbose"},
-        credentials:"same-origin"
-      });
-
-      if(r.status===404) return msg("❌ Không tìm thấy list 'TagLibrary' trong SharePoint","error");
-      if(!r.ok) throw new Error("HTTP "+r.status);
-
-      const data=await r.json();
-      items = data.d?.results ?? [];
-
-      if(!items.length) return msg("⚠️ List TagLibrary trống.","error");
-    } else {
-      // Demo when NOT in SharePoint
-      items = [
-        {Title:"Số văn bản",Value:"{SoVB}",Desc:"DEMO: field trong văn bản"},
-        {Title:"Ngày ban hành",Value:"{NgayBH}",Desc:"DEMO: ngày ký"},
-      ];
-    }
-
-    const f = items.filter(x => 
-      (x.Title||"").toLowerCase().includes(q.toLowerCase()) ||
-      (x.Value||"").toLowerCase().includes(q.toLowerCase()) ||
-      (x.Desc||"").toLowerCase().includes(q.toLowerCase())
-    );
-
-    if(!f.length) return msg("⚠️ Không có kết quả "+q);
-
-    msg("✅ Tìm thấy "+f.length+" kết quả");
-    const box=document.getElementById("results");
-    f.slice(0,50).forEach(t=>{
-      const c=document.createElement("div");
-      c.className="card";
-      c.innerHTML=`<div class="ttl">${t.Title}</div>
-                   <div class="desc">${t.Desc||""}</div>
-                   <div class="val">${t.Value}</div>`;
-      c.onclick=()=>pick(t.Value);
-      box.appendChild(c);
-    });
-
-  }catch(e){
-    msg("❌ Lỗi: "+e.message,"error");
-  }
-}
-
-document.getElementById("go").onclick=search;
-document.getElementById("kw").addEventListener("keydown",e=>{
-  if(e.key==="Enter") search();
-});
-</script>
+<script src="smartcopilot.js"></script>
 </body>
 </html>
