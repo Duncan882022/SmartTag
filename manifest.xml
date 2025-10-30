@@ -1,86 +1,90 @@
-<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="UTF-8"?>
 <OfficeApp xmlns="http://schemas.microsoft.com/office/appforoffice/1.1"
-           xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-           xmlns:bt="http://schemas.microsoft.com/office/officeappbasictypes/1.0"
-           xsi:type="TaskPaneApp">
+            xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+            xmlns:bt="http://schemas.microsoft.com/office/officeappbasictypes/1.0"
+            xmlns:ov="http://schemas.microsoft.com/office/taskpaneappversionoverrides"
+            xsi:type="TaskPaneApp">
 
-  <!-- CHANGE THIS to a valid GUID (36 chars with dashes) -->
-  <Id>61d62e1c-a300-4a3a-9d75-f66b083f102c</Id>
-
-  <Version>1.0.0.0</Version>
-  <ProviderName>Duncan</ProviderName>
+  <Id>9e7b8a2f-3a1b-4d15-9e55-bb8dc5d8e321</Id>
+  <Version>1.0.0.1</Version>
+  <ProviderName>Just Engineer Tech</ProviderName>
   <DefaultLocale>en-US</DefaultLocale>
+  <DisplayName DefaultValue="SmartTagCopilot" />
+  <Description DefaultValue="Add-in tìm và gợi ý tag từ SharePoint list TagLibrary cho Word." />
+  <IconUrl DefaultValue="https://duncan882022.github.io/SmartTag/icon32.png" />
+  <SupportUrl DefaultValue="https://justengineertech.sharepoint.com/sites/E-Office" />
 
-  <DisplayName DefaultValue="SmartTag Copilot"/>
-  <Description DefaultValue="SmartTag Copilot — insert tags from SharePoint list"/>
-
-  <IconUrl DefaultValue="https://via.placeholder.com/32" />
-  <SupportUrl DefaultValue="https://github.com/Duncan882022/SmartTag" />
+  <AppDomains>
+    <AppDomain>https://duncan882022.github.io</AppDomain>
+    <AppDomain>https://justengineertech.sharepoint.com</AppDomain>
+  </AppDomains>
 
   <Hosts>
-    <Host Name="Document"/>
+    <Host Name="Document" />
   </Hosts>
 
-  <!-- This is the taskpane page that Office will load -->
   <DefaultSettings>
-    <SourceLocation DefaultValue="https://duncan882022.github.io/SmartTag/taskpane.html"/>
+    <SourceLocation DefaultValue="https://duncan882022.github.io/SmartTag/SmartTagCopilot.html" />
   </DefaultSettings>
 
-  <Permissions>ReadWriteDocument</Permissions>
-
-  <!-- Modern section: VersionOverrides (keeps manifest compatible with new Office clients) -->
-  <VersionOverrides xmlns="http://schemas.microsoft.com/office/taskpaneappversionoverrides" Version="1.0">
+  <VersionOverrides xmlns="http://schemas.microsoft.com/office/taskpaneappversionoverrides" xsi:type="VersionOverridesV1_0">
     <Hosts>
       <Host xsi:type="Document">
         <DesktopFormFactor>
           <GetStarted>
-            <Title>SmartTag Copilot</Title>
-            <Description>Insert tags from SharePoint</Description>
+            <Title resid="residGetStartedTitle" />
+            <Description resid="residGetStartedDesc" />
+            <LearnMoreUrl resid="residLearnMoreUrl" />
           </GetStarted>
-
+          <FunctionFile resid="functionFile" />
           <ExtensionPoint xsi:type="PrimaryCommandSurface">
             <OfficeTab id="TabHome">
-              <Group id="SmartTag.Group" label="SmartTag">
-                <Control xsi:type="Button" id="SmartTag.Button">
-                  <Label resid="SmartTag.Label" />
+              <Group id="SmartTagCopilotGroup" label="SmartTagCopilot">
+                <Label resid="groupLabel" />
+                <Icon>
+                  <bt:Image size="16" resid="icon16" />
+                  <bt:Image size="32" resid="icon32" />
+                  <bt:Image size="80" resid="icon80" />
+                </Icon>
+                <Control xsi:type="Button" id="TaskpaneButton">
+                  <Label resid="paneButtonLabel" />
                   <Supertip>
-                    <Title resid="SmartTag.Label" />
-                    <Description resid="SmartTag.Description" />
+                    <Title resid="paneButtonTitle" />
+                    <Description resid="paneButtonDesc" />
                   </Supertip>
                   <Icon>
                     <bt:Image size="16" resid="icon16" />
                     <bt:Image size="32" resid="icon32" />
+                    <bt:Image size="80" resid="icon80" />
                   </Icon>
                   <Action xsi:type="ShowTaskpane">
-                    <TaskpaneId>ButtonId1</TaskpaneId>
-                    <SourceLocation resid="Taskpane.Url" />
+                    <SourceLocation resid="taskpaneUrl" />
                   </Action>
                 </Control>
               </Group>
             </OfficeTab>
           </ExtensionPoint>
-
         </DesktopFormFactor>
       </Host>
     </Hosts>
 
     <Resources>
       <bt:Images>
-        <bt:Image id="icon16" DefaultValue="https://via.placeholder.com/16" />
-        <bt:Image id="icon32" DefaultValue="https://via.placeholder.com/32" />
+        <bt:Image id="icon16" DefaultValue="https://duncan882022.github.io/SmartTag/icon16.png" />
+        <bt:Image id="icon32" DefaultValue="https://duncan882022.github.io/SmartTag/icon32.png" />
+        <bt:Image id="icon80" DefaultValue="https://duncan882022.github.io/SmartTag/icon80.png" />
       </bt:Images>
-
       <bt:Urls>
-        <!-- These resid values are referenced above -->
-        <bt:Url id="Taskpane.Url" DefaultValue="https://duncan882022.github.io/SmartTag/taskpane.html" />
+        <bt:Url id="functionFile" DefaultValue="https://duncan882022.github.io/SmartTag/SmartTagCopilot.html" />
+        <bt:Url id="taskpaneUrl" DefaultValue="https://duncan882022.github.io/SmartTag/SmartTagCopilot.html" />
       </bt:Urls>
-
       <bt:ShortStrings>
-        <bt:String id="SmartTag.Label" DefaultValue="SmartTag Copilot" />
+        <bt:String id="groupLabel" DefaultValue="SmartTagCopilot" />
+        <bt:String id="paneButtonLabel" DefaultValue="Mở SmartTagCopilot" />
+        <bt:String id="paneButtonTitle" DefaultValue="SmartTagCopilot" />
       </bt:ShortStrings>
-
       <bt:LongStrings>
-        <bt:String id="SmartTag.Description" DefaultValue="Open SmartTag Copilot panel" />
+        <bt:String id="paneButtonDesc" DefaultValue="Tìm kiếm và chèn tag từ SharePoint TagLibrary." />
       </bt:LongStrings>
     </Resources>
   </VersionOverrides>
