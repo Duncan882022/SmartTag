@@ -1,17 +1,18 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <OfficeApp xmlns="http://schemas.microsoft.com/office/appforoffice/1.1"
             xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-            xmlns:bt="http://schemas.microsoft.com/office/officeappbasictypes/1.0"
-            xmlns:ov="http://schemas.microsoft.com/office/taskpaneappversionoverrides"
             xsi:type="TaskPaneApp">
 
-  <Id>9e7b8a2f-3a1b-4d15-9e55-bb8dc5d8e321</Id>
-  <Version>1.0.0.1</Version>
+  <Id>3b96f2a8-5b7d-4df8-99a5-8bba3faaa3c1</Id>
+  <Version>1.0.0.0</Version>
   <ProviderName>Just Engineer Tech</ProviderName>
   <DefaultLocale>en-US</DefaultLocale>
-  <DisplayName DefaultValue="SmartTagCopilot" />
-  <Description DefaultValue="Add-in tìm và gợi ý tag từ SharePoint list TagLibrary cho Word." />
+  <DisplayName DefaultValue="SmartTag Copilot"/>
+  <Description DefaultValue="Add-in tìm kiếm và chèn tag từ SharePoint list TagLibrary." />
+
   <IconUrl DefaultValue="https://duncan882022.github.io/SmartTag/icon32.png" />
+  <HighResolutionIconUrl DefaultValue="https://duncan882022.github.io/SmartTag/icon80.png" />
+
   <SupportUrl DefaultValue="https://justengineertech.sharepoint.com/sites/E-Office" />
 
   <AppDomains>
@@ -20,71 +21,48 @@
   </AppDomains>
 
   <Hosts>
-    <Host Name="Document" />
+    <Host Name="Document"/>
   </Hosts>
 
   <DefaultSettings>
-    <SourceLocation DefaultValue="https://duncan882022.github.io/SmartTag/SmartTagCopilot.html" />
+    <SourceLocation DefaultValue="https://duncan882022.github.io/SmartTag/SmartTagCopilot.html"/>
   </DefaultSettings>
 
-  <VersionOverrides xmlns="http://schemas.microsoft.com/office/taskpaneappversionoverrides" xsi:type="VersionOverridesV1_0">
+  <Permissions>ReadWriteDocument</Permissions>
+
+  <VersionOverrides xmlns="http://schemas.microsoft.com/office/mailappversionoverrides/1.0" xsi:type="VersionOverridesV1_0">
     <Hosts>
       <Host xsi:type="Document">
         <DesktopFormFactor>
           <GetStarted>
-            <Title resid="residGetStartedTitle" />
-            <Description resid="residGetStartedDesc" />
-            <LearnMoreUrl resid="residLearnMoreUrl" />
+            <Title resid="residTitle"/>
+            <Description resid="residDesc"/>
+            <LearnMoreUrl resid="residUrl"/>
           </GetStarted>
-          <FunctionFile resid="functionFile" />
-          <ExtensionPoint xsi:type="PrimaryCommandSurface">
-            <OfficeTab id="TabHome">
-              <Group id="SmartTagCopilotGroup" label="SmartTagCopilot">
-                <Label resid="groupLabel" />
-                <Icon>
-                  <bt:Image size="16" resid="icon16" />
-                  <bt:Image size="32" resid="icon32" />
-                  <bt:Image size="80" resid="icon80" />
-                </Icon>
-                <Control xsi:type="Button" id="TaskpaneButton">
-                  <Label resid="paneButtonLabel" />
-                  <Supertip>
-                    <Title resid="paneButtonTitle" />
-                    <Description resid="paneButtonDesc" />
-                  </Supertip>
-                  <Icon>
-                    <bt:Image size="16" resid="icon16" />
-                    <bt:Image size="32" resid="icon32" />
-                    <bt:Image size="80" resid="icon80" />
-                  </Icon>
-                  <Action xsi:type="ShowTaskpane">
-                    <SourceLocation resid="taskpaneUrl" />
-                  </Action>
-                </Control>
-              </Group>
-            </OfficeTab>
+          <FunctionFile resid="residFunctionFile"/>
+          <ExtensionPoint xsi:type="TaskPane">
+            <SourceLocation resid="residSourceLocation"/>
+            <Title resid="residTitle"/>
+            <SupportUrl resid="residUrl"/>
           </ExtensionPoint>
         </DesktopFormFactor>
       </Host>
     </Hosts>
-
     <Resources>
-      <bt:Images>
-        <bt:Image id="icon16" DefaultValue="https://duncan882022.github.io/SmartTag/icon16.png" />
-        <bt:Image id="icon32" DefaultValue="https://duncan882022.github.io/SmartTag/icon32.png" />
-        <bt:Image id="icon80" DefaultValue="https://duncan882022.github.io/SmartTag/icon80.png" />
+      <bt:Images xmlns:bt="http://schemas.microsoft.com/office/officeappbasictypes/1.0">
+        <bt:Image id="icon32" DefaultValue="https://duncan882022.github.io/SmartTag/icon32.png"/>
+        <bt:Image id="icon80" DefaultValue="https://duncan882022.github.io/SmartTag/icon80.png"/>
       </bt:Images>
-      <bt:Urls>
-        <bt:Url id="functionFile" DefaultValue="https://duncan882022.github.io/SmartTag/SmartTagCopilot.html" />
-        <bt:Url id="taskpaneUrl" DefaultValue="https://duncan882022.github.io/SmartTag/SmartTagCopilot.html" />
+      <bt:Urls xmlns:bt="http://schemas.microsoft.com/office/officeappbasictypes/1.0">
+        <bt:Url id="residUrl" DefaultValue="https://justengineertech.sharepoint.com/sites/E-Office"/>
+        <bt:Url id="residSourceLocation" DefaultValue="https://duncan882022.github.io/SmartTag/SmartTagCopilot.html"/>
+        <bt:Url id="residFunctionFile" DefaultValue="https://duncan882022.github.io/SmartTag/SmartTagCopilot.html"/>
       </bt:Urls>
-      <bt:ShortStrings>
-        <bt:String id="groupLabel" DefaultValue="SmartTagCopilot" />
-        <bt:String id="paneButtonLabel" DefaultValue="Mở SmartTagCopilot" />
-        <bt:String id="paneButtonTitle" DefaultValue="SmartTagCopilot" />
+      <bt:ShortStrings xmlns:bt="http://schemas.microsoft.com/office/officeappbasictypes/1.0">
+        <bt:String id="residTitle" DefaultValue="SmartTag Copilot"/>
       </bt:ShortStrings>
-      <bt:LongStrings>
-        <bt:String id="paneButtonDesc" DefaultValue="Tìm kiếm và chèn tag từ SharePoint TagLibrary." />
+      <bt:LongStrings xmlns:bt="http://schemas.microsoft.com/office/officeappbasictypes/1.0">
+        <bt:String id="residDesc" DefaultValue="Add-in chèn tag từ SharePoint list vào Word."/>
       </bt:LongStrings>
     </Resources>
   </VersionOverrides>
