@@ -1,195 +1,142 @@
 <!DOCTYPE html>
 <html lang="vi">
 <head>
-  <meta charset="utf-8" />
-  <title>Smart Copilot</title>
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <!-- Office.js để hỗ trợ chèn vào Word khi chạy trong Add-in -->
-  <script src="https://appsforoffice.microsoft.com/lib/1/hosted/office.js"></script>
-  <style>
-    :root{
-      --brand:#0078d4;
-      --bg:#f5f6fa;
-      --panel:#ffffff;
-      --pill:#e7f3ff;
-      --text:#1f2328;
-    }
-    *{box-sizing:border-box}
-    html,body{height:100%;margin:0;background:var(--bg);font-family:Segoe UI,system-ui,-apple-system,Arial}
-    .wrap{
-      max-width:560px;height:100%;margin:0 auto;padding:16px;
-      display:flex;flex-direction:column;gap:12px;
-    }
-    .header{font-weight:600;color:var(--text);display:flex;align-items:center;gap:8px}
-    .dot{width:10px;height:10px;border-radius:50%;background:var(--brand)}
-    .panel{
-      flex:1;background:var(--panel);border-radius:12px;box-shadow:0 6px 20px rgba(0,0,0,.08);
-      padding:14px;display:flex;flex-direction:column;gap:10px;overflow:auto;min-height:220px;
-    }
-    .msg{
-      padding:12px;border-radius:10px;background:#f1f5ff;border-left:4px solid var(--brand);
-      color:#0f172a;line-height:1.45;font-size:14px;white-space:pre-wrap
-    }
-    .msg.error{background:#fff1f1;border-color:#d92d20;color:#7a271a}
-    .results{display:grid;grid-template-columns:1fr;gap:8px}
-    .card{
-      background:var(--pill);border:1px solid #d6eaff;border-radius:10px;padding:10px;cursor:pointer
-    }
-    .card:hover{outline:2px solid var(--brand)}
-    .ttl{font-weight:600;margin-bottom:4px}
-    .desc{font-size:12px;color:#475569;margin-bottom:6px}
-    .val{font-family:Consolas,monospace;font-size:12px;background:#fff;border:1px dashed #bcd6f3;padding:4px 6px;border-radius:6px;display:inline-block}
-    .inputBar{
-      display:flex;gap:8px;align-items:center;background:var(--panel);border-radius:12px;
-      box-shadow:0 10px 30px rgba(0,0,0,.08);padding:10px 10px 10px 12px;position:sticky;bottom:0
-    }
-    #kw{
-      flex:1;border:1px solid #e5e7eb;border-radius:10px;padding:10px 12px;font-size:14px;
-      outline:none
-    }
-    #kw:focus{border-color:var(--brand);box-shadow:0 0 0 3px rgba(0,120,212,.15)}
-    .btn{
-      border:0;background:var(--brand);color:#fff;border-radius:10px;padding:10px 16px;cursor:pointer;font-weight:600
-    }
-    .btn:active{transform:translateY(1px)}
-    .hint{font-size:12px;color:#64748b}
-  </style>
+<meta charset="UTF-8" />
+<title>Smart Copilot</title>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<script src="https://appsforoffice.microsoft.com/lib/1/hosted/office.js"></script>
+<style>
+body{margin:0;background:#f5f6fa;font-family:Segoe UI,Arial,sans-serif;}
+#wrap{max-width:600px;margin:auto;padding:16px;height:100vh;display:flex;flex-direction:column;gap:12px;}
+.panel{flex:1;background:#fff;border-radius:12px;padding:14px;box-shadow:0 6px 20px rgba(0,0,0,.08);overflow:auto;}
+.msg{padding:12px;background:#eef6ff;border-left:4px solid #0078d4;border-radius:8px;margin-bottom:10px;font-size:14px;}
+.msg.error{background:#ffe8e8;border-color:#d92d20;color:#7a271a;}
+.card{background:#e9f3ff;border:1px solid #bcd9ff;border-radius:10px;padding:10px;margin:8px 0;cursor:pointer;}
+.card:hover{outline:2px solid #0078d4;}
+.ttl{font-weight:600;margin-bottom:3px;}
+.desc{font-size:12px;color:#475569;margin-bottom:4px;}
+.val{font-family:Consolas,monospace;font-size:12px;background:#fff;border:1px dashed #bcd6f3;padding:3px 5px;border-radius:6px;display:inline-block}
+.inputBar{display:flex;gap:8px;}
+#kw{flex:1;padding:10px;border:1px solid #d0d7e2;border-radius:8px;font-size:14px;}
+#go{padding:10px 16px;background:#0078d4;color:#fff;border:0;border-radius:8px;font-weight:600;cursor:pointer;}
+</style>
 </head>
 <body>
-  <div class="wrap">
-    <div class="header"><span class="dot"></span>Smart Copilot</div>
-
-    <div id="panel" class="panel">
-      <div id="log" class="msg">✅ Sẵn sàng. Gõ từ khóa (ví dụ: <b>ngày</b>, <b>số</b>...) rồi nhấn Tìm.</div>
-      <div id="results" class="results"></div>
-    </div>
-
-    <div class="inputBar">
-      <input id="kw" type="text" placeholder="Nhập @tag hoặc từ khóa..." />
-      <button id="go" class="btn">Tìm</button>
-    </div>
-    <div class="hint">• Không lưu lịch sử. Kết quả mới sẽ thay thế phần hiển thị bên trên.</div>
+<div id="wrap">
+  <div class="panel">
+    <div id="msg" class="msg">✅ Sẵn sàng — nhập từ khóa rồi nhấn Tìm.</div>
+    <div id="results"></div>
   </div>
 
+  <div class="inputBar">
+    <input id="kw" placeholder="Nhập từ khóa..." />
+    <button id="go">Tìm</button>
+  </div>
+</div>
+
 <script>
-/* ===== Helpers ===== */
-const $ = (id)=>document.getElementById(id);
-const state = {
-  isOffice: typeof Office!=='undefined' && !!Office.onReady,
-  isSharePoint: typeof _spPageContextInfo!=='undefined'
+// Detect environment
+const isSP = typeof _spPageContextInfo !== "undefined";
+const isWord = typeof Office !== "undefined" && Office.onReady;
+
+// UI helpers
+const msg = (t, err=false)=>{ 
+  const m=document.getElementById("msg");
+  m.className="msg"+(err?" error":"");
+  m.textContent=t;
 };
+const clearRes=()=>document.getElementById("results").innerHTML="";
 
-function showMsg(text, type='info'){
-  const log = $('log');
-  log.className = 'msg' + (type==='error' ? ' error' : '');
-  log.innerHTML = text;
-}
-
-function showResults(items){
-  const box = $('results');
-  box.innerHTML = '';
-  items.forEach(it=>{
-    const card = document.createElement('div');
-    card.className = 'card';
-    card.title = (it.Desc||'');
-    card.innerHTML = `
-      <div class="ttl">${escapeHtml(it.Title||'')}</div>
-      <div class="desc">${escapeHtml(it.Desc||'')}</div>
-      <div class="val">${escapeHtml(it.Value||'')}</div>
-    `;
-    card.onclick = ()=> onPick(it);
-    box.appendChild(card);
-  });
-}
-
-function escapeHtml(s){return String(s||'').replace(/[&<>"]/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]))}
-
-/* ===== Insert to Word if available ===== */
-async function insertToWord(text){
-  if(!state.isOffice) return false;
+// Insert tag (only Word)
+async function insert(value){
+  if(!isWord) return false;
   try{
     await Office.onReady();
     await Word.run(async ctx=>{
-      const sel = ctx.document.getSelection();
-      sel.insertText(text, Word.InsertLocation.replace);
+      ctx.document.getSelection().insertText(value, Word.InsertLocation.replace);
       await ctx.sync();
     });
-    showMsg('✍️ Đã chèn vào tài liệu Word: ' + text);
+    msg("✍️ Đã chèn "+value);
     return true;
   }catch(e){
-    showMsg('❌ Không thể chèn vào Word: ' + e.message, 'error');
+    msg("❌ Không chèn được vào Word","error"); 
     return false;
   }
 }
 
-/* ===== Behaviors ===== */
-async function onPick(tag){
-  // ưu tiên chèn vào Word, nếu không thì copy clipboard
-  const ok = await insertToWord(tag.Value||'');
-  if(!ok){
-    try{
-      await navigator.clipboard.writeText(tag.Value||'');
-      showMsg('📋 Đã copy vào clipboard: ' + (tag.Value||''));
-    }catch{
-      showMsg('ℹ️ Giá trị: ' + (tag.Value||'') + ' (copy thủ công nếu cần)');
-    }
+// Click result
+async function pick(v){
+  const done=await insert(v);
+  if(!done){
+    navigator.clipboard.writeText(v).catch(()=>{});
+    msg("📋 Đã copy: "+v);
   }
 }
 
+// Search
 async function search(){
-  const q = $('kw').value.trim();
-  if(!q){ showMsg('ℹ️ Nhập từ khóa để tìm trong TagLibrary.'); $('results').innerHTML=''; return; }
+  const q = document.getElementById("kw").value.trim();
+  if(!q){ msg("ℹ️ Nhập từ khóa trước."); clearRes(); return; }
 
-  // mỗi lần tìm: clear kết quả cũ (không giữ lịch sử)
-  $('results').innerHTML='';
-  showMsg('🔎 Đang tìm: ' + q);
+  msg("🔎 Đang tìm…");
+  clearRes();
 
   try{
-    let rows = [];
-    if(state.isSharePoint){
-      const site = _spPageContextInfo.webAbsoluteUrl;
-      const url = `${site}/_api/web/lists/getbytitle('TagLibrary')/items?$select=Title,Value,Desc`;
-      const r = await fetch(url,{headers:{Accept:'application/json;odata=verbose'}, credentials:'same-origin'});
-      if(!r.ok) throw new Error('HTTP ' + r.status);
-      const data = await r.json();
-      rows = (data.d && data.d.results) ? data.d.results : [];
-    }else{
-      // Demo khi test ngoài SharePoint (GitHub, cục bộ…)
-      rows = [
-        { Title:'Số văn bản', Value:'{SoVB}', Desc:'Tự động điền số văn bản' },
-        { Title:'Ngày ban hành', Value:'{NgayBanHanh}', Desc:'Ngày ký văn bản' },
-        { Title:'Cơ quan ban hành', Value:'{CoQuan}', Desc:'Tên đơn vị phát hành' }
+    let items=[];
+
+    if(isSP){
+      const site=_spPageContextInfo.webAbsoluteUrl;
+      const url=`${site}/_api/web/lists/getbytitle('TagLibrary')/items?$select=Title,Value,Desc`;
+
+      const r = await fetch(url,{
+        headers:{Accept:"application/json;odata=verbose"},
+        credentials:"same-origin"
+      });
+
+      if(r.status===404) return msg("❌ Không tìm thấy list 'TagLibrary' trong SharePoint","error");
+      if(!r.ok) throw new Error("HTTP "+r.status);
+
+      const data=await r.json();
+      items = data.d?.results ?? [];
+
+      if(!items.length) return msg("⚠️ List TagLibrary trống.","error");
+    } else {
+      // Demo when NOT in SharePoint
+      items = [
+        {Title:"Số văn bản",Value:"{SoVB}",Desc:"DEMO: field trong văn bản"},
+        {Title:"Ngày ban hành",Value:"{NgayBH}",Desc:"DEMO: ngày ký"},
       ];
     }
 
-    const found = rows.filter(t=>{
-      const s = (t.Title||'') + ' ' + (t.Value||'') + ' ' + (t.Desc||'');
-      return s.toLowerCase().includes(q.toLowerCase());
+    const f = items.filter(x => 
+      (x.Title||"").toLowerCase().includes(q.toLowerCase()) ||
+      (x.Value||"").toLowerCase().includes(q.toLowerCase()) ||
+      (x.Desc||"").toLowerCase().includes(q.toLowerCase())
+    );
+
+    if(!f.length) return msg("⚠️ Không có kết quả "+q);
+
+    msg("✅ Tìm thấy "+f.length+" kết quả");
+    const box=document.getElementById("results");
+    f.slice(0,50).forEach(t=>{
+      const c=document.createElement("div");
+      c.className="card";
+      c.innerHTML=`<div class="ttl">${t.Title}</div>
+                   <div class="desc">${t.Desc||""}</div>
+                   <div class="val">${t.Value}</div>`;
+      c.onclick=()=>pick(t.Value);
+      box.appendChild(c);
     });
 
-    if(found.length===0){
-      showMsg('⚠️ Không tìm thấy kết quả phù hợp cho: ' + q);
-      return;
-    }
-
-    showMsg('✅ Tìm thấy ' + found.length + ' kết quả. Chạm để chèn vào Word (nếu đang chạy Add-in).');
-    showResults(found.slice(0,20));
   }catch(e){
-    showMsg('❌ Lỗi: ' + e.message, 'error');
+    msg("❌ Lỗi: "+e.message,"error");
   }
 }
 
-/* ===== Init UI (không lưu lịch sử) ===== */
-function init(){
-  $('go').onclick = search;
-  $('kw').addEventListener('keydown', e=>{
-    if(e.key==='Enter' && !e.shiftKey){ e.preventDefault(); search(); }
-  });
-  // gợi ý nhỏ
-  $('kw').placeholder = state.isSharePoint ? 'Nhập @tag hoặc từ khóa (SharePoint mode)…' : 'Nhập từ khóa (Demo mode)…';
-}
-
-if(document.readyState==='loading') document.addEventListener('DOMContentLoaded', init); else init();
+document.getElementById("go").onclick=search;
+document.getElementById("kw").addEventListener("keydown",e=>{
+  if(e.key==="Enter") search();
+});
 </script>
 </body>
 </html>
