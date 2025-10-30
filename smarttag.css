@@ -1,26 +1,86 @@
-.search-container {
-  font-family: Arial, sans-serif;
-  margin: 20px;
+/* smarttag.js - SmartTagCopilot main script */
+
+Office.onReady(() => {
+  document.getElementById("searchBox").addEventListener("input", handleSearch);
+});
+
+function showDialogMessage(message, title = "Thông báo") {
+  try {
+    const html = `
+      <html>
+        <body style="font-family:Segoe UI, sans-serif; padding:20px;">
+          <h3 style="color:#0066cc;">${title}</h3>
+          <p>${message}</p>
+          <button onclick="Office.context.ui.messageParent('close')" 
+            style="margin-top:15px; padding:6px 12px; background:#0066cc; color:#fff; border:none; border-radius:4px;">
+            Đóng
+          </button>
+        </body>
+      </html>`;
+    const encoded = encodeURIComponent(html);
+    Office.context.ui.displayDialogAsync("data:text/html," + encoded, { height: 40, width: 40 });
+  } catch (err) {
+    console.error("Dialog error:", err);
+  }
 }
 
-#searchBox {
-  width: 100%;
-  padding: 8px;
-  font-size: 14px;
+async function loadTags() {
+  const siteUrl = "https://justengineertech.sharepoint.com/sites/E-Office";
+  const listName = "TagLibrary";
+  const apiUrl = `${siteUrl}/_api/web/lists/getbytitle('${listName}')/items?$select=Title,Value,Desc`;
+
+  try {
+    const response = await fetch(apiUrl, {
+      headers: { Accept: "application/json;odata=verbose" },
+    });
+    const data = await response.json();
+    return data.d.results || [];
+  } catch (err) {
+    showDialogMessage("Không thể tải dữ liệu từ SharePoint: " + err.message, "Lỗi tải dữ liệu");
+    return [];
+  }
 }
 
-#tagResults {
-  list-style-type: none;
-  margin-top: 10px;
-  padding: 0;
-}
+async function handleSearch(e) {
+  const query = e.target.value.trim().toLowerCase();
+  const resultsDiv = document.getElementById("results");
+  resultsDiv.innerHTML = "";
 
-#tagResults li {
-  padding: 6px;
-  border-bottom: 1px solid #ddd;
-  cursor: pointer;
-}
+  if (query.length === 0) return;
 
-#tagResults li:hover {
-  background-color: #f0f0f0;
+  const tags = await loadTags();
+  if (!tags.length) {
+    showDialogMessage("Không có dữ liệu tag để tìm kiếm.", "Thông báo");
+    return;
+  }
+
+  const matched = tags.filter(
+    (t) => t.Title.toLowerCase().includes(query) || t.Value.toLowerCase().includes(query)
+  );
+
+  if (matched.length === 0) {
+    showDialogMessage("Không tìm thấy tag phù hợp.", "Kết quả tìm kiếm");
+    return;
+  }
+
+  matched.forEach((tag) => {
+    const div = document.createElement("div");
+    div.className = "tag-item";
+    div.textContent = tag.Title;
+    div.title = `Giá trị: ${tag.Value}\nMô tả: ${tag.Desc || "Không có mô tả"}`;
+    resultsDiv.appendChild(div);
+
+    // Khi click -> chèn tag vào vị trí con trỏ Word
+    div.onclick = async () => {
+      try {
+        await Word.run(async (context) => {
+          const range = context.document.getSelection();
+          range.insertText(tag.Value, Word.InsertLocation.replace);
+          await context.sync();
+        });
+      } catch (err) {
+        showDialogMessage("Không thể chèn tag vào tài liệu: " + err.message, "Lỗi chèn tag");
+      }
+    };
+  });
 }
