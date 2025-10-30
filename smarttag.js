@@ -1,44 +1,53 @@
-body {
-  font-family: 'Segoe UI', sans-serif;
-  margin: 0;
-  padding: 0;
-  background: #fafafa;
+async function showDialog(message) {
+  const dialog = document.getElementById("infoDialog");
+  document.getElementById("dialogText").innerText = message;
+  dialog.showModal();
 }
 
-.container {
-  padding: 15px;
+async function searchTags(query) {
+  const url = `https://justengineertech.sharepoint.com/sites/E-Office/_api/web/lists/getbytitle('TagLibrary')/items?$select=Title,Value,Desc&$top=50`;
+  try {
+    const response = await fetch(url, {
+      headers: { "Accept": "application/json;odata=nometadata" }
+    });
+
+    if (!response.ok) {
+      showDialog("Fetch lỗi HTTP: " + response.status);
+      console.error("Fetch error:", response);
+      return;
+    }
+
+    const data = await response.json();
+    console.log("📦 Data SharePoint:", data);
+
+    if (!data || !data.value || data.value.length === 0) {
+      showDialog("Không tìm thấy dữ liệu");
+      return;
+    }
+
+    const filtered = data.value.filter(
+      item => item.Title.toLowerCase().includes(query.toLowerCase())
+    );
+
+    const list = document.getElementById("resultList");
+    list.innerHTML = "";
+    if (filtered.length > 0) {
+      filtered.forEach(item => {
+        const li = document.createElement("li");
+        li.textContent = `${item.Title} (${item.Value})`;
+        li.title = item.Desc;
+        list.appendChild(li);
+      });
+    } else {
+      list.innerHTML = "<li>Không tìm thấy kết quả</li>";
+    }
+  } catch (err) {
+    console.error("❌ Lỗi JS:", err);
+    showDialog("Lỗi JavaScript hoặc CORS.");
+  }
 }
 
-h2 {
-  color: #0066cc;
-  font-size: 18px;
-  margin-bottom: 10px;
-}
-
-#searchBox {
-  width: 100%;
-  padding: 8px 10px;
-  font-size: 14px;
-  border: 1px solid #ccc;
-  border-radius: 4px;
-  box-sizing: border-box;
-  margin-bottom: 10px;
-}
-
-#results {
-  border: 1px solid #e0e0e0;
-  background: #fff;
-  border-radius: 4px;
-  max-height: 300px;
-  overflow-y: auto;
-}
-
-.tag-item {
-  padding: 8px 10px;
-  border-bottom: 1px solid #eee;
-  cursor: pointer;
-}
-
-.tag-item:hover {
-  background-color: #f0f8ff;
-}
+document.getElementById("searchBox").addEventListener("input", (e) => {
+  const query = e.target.value.trim();
+  if (query.length > 1) searchTags(query);
+});
