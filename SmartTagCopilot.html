@@ -1,17 +1,21 @@
 <!DOCTYPE html>
-<html>
+<html lang="vi">
 <head>
   <meta charset="utf-8" />
-  <title>SmartTagCopilot</title>
+  <title>SmartTagCopilot - Test CORS</title>
   <link rel="stylesheet" href="smarttag.css" />
-  <script src="https://appsforoffice.microsoft.com/lib/1/hosted/office.js"></script>
-  <script src="smarttag.js" defer></script>
+  <script defer src="smarttag.js"></script>
 </head>
 <body>
   <div class="container">
-    <h2>SmartTag Copilot</h2>
+    <h2>SmartTagCopilot - CORS Test</h2>
     <input id="searchBox" type="text" placeholder="Nhập tag tìm kiếm..." />
-    <div id="results"></div>
+    <ul id="resultList"></ul>
   </div>
+
+  <dialog id="infoDialog">
+    <p id="dialogText"></p>
+    <button onclick="document.getElementById('infoDialog').close()">Đóng</button>
+  </dialog>
 </body>
 </html>
