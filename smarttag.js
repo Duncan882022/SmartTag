@@ -36,6 +36,12 @@ function init(){
   i.addEventListener("keydown",key);
   i.focus();
 
+  
+Office.onReady(()=>{ 
+  console.log("✅ Office ready, init() running...");
+  init();
+});
+
   const r=$("#refresh");
   if(r) r.addEventListener("click",async ()=>{
     console.log("🔁 Refresh clicked");
